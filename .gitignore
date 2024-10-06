@@ -2,7 +2,9 @@
 *
 
 #Unignore files with extension
-! **/**.**
+!*.*
+
+!*/
 
 #ignore .run
 **/**.run
