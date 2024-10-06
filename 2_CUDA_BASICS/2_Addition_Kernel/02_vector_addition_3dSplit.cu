@@ -149,9 +149,9 @@ int main()
     double avg_gpu3d_time = gpu_time_3d * 1e3 / RUNS;
 
     printf("\n\n:::::::Results:::::::\n-> Average time for vector addtion with 10 Million elements: \n");
-    printf("%10s %.4fs\n", "CPU: ", avg_cpu_time);
-    printf("%10s %.4fs\n", "GPU-1D: ", avg_gpu1d_time);
-    printf("%10s %.4fs\n", "GPU-3D: ", avg_gpu3d_time);
+    printf("%10s %.4f milliseconds\n", "CPU: ", avg_cpu_time);
+    printf("%10s %.4f milliseconds\n", "GPU-1D: ", avg_gpu1d_time);
+    printf("%10s %.4f milliseconds\n", "GPU-3D: ", avg_gpu3d_time);
 
     bool correct = true;
     for (int i = 0; i < N; i++)
