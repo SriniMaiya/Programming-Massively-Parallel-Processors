@@ -3,5 +3,6 @@
         "random": "c",
         "stdio.h": "c",
         "iostream": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "/usr/local/cuda-12.6/bin/nvcc"
 }
