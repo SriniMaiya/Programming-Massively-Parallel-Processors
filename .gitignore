@@ -8,3 +8,5 @@
 
 #ignore .run
 **/**.run
+
+**/**.out
