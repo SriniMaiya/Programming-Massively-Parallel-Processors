@@ -5,7 +5,7 @@
 
 #define RUNS 20
 #define N 10000000 // Vector size: 10 million
-#define BLOCK_SIZE 256
+#define THREADS_PER_BLOCK 256
 
 // cpu vector addtion
 
@@ -83,14 +83,14 @@ int main()
     cudaMemcpy(device_a, host_a, size_vec, cudaMemcpyHostToDevice);
     cudaMemcpy(device_b, host_b, size_vec, cudaMemcpyHostToDevice);
 
-    // Always keeps 1 additional block during the  (N/BLOCK_SIZE) division with remainder.
-    int num_blocks = (N + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    // Always keeps 1 additional block during the  (N/THREADS_PER_BLOCK) division with remainder.
+    int num_blocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
     printf("Performing warm-up runs.....\n");
     for (int i = 0; i < 3; i++)
     {
         vector_add_cpu(host_a, host_b, host_c_cpu, N);
-        vector_add_gpu<<<num_blocks, BLOCK_SIZE>>>(device_a, device_b, device_c, N);
+        vector_add_gpu<<<num_blocks, THREADS_PER_BLOCK>>>(device_a, device_b, device_c, N);
         cudaDeviceSynchronize();
     }
 
@@ -110,7 +110,7 @@ int main()
     for (int i = 0; i < RUNS; i++)
     {
         double start_time = get_time();
-        vector_add_gpu<<<num_blocks, BLOCK_SIZE>>>(device_a, device_b, device_c, N);
+        vector_add_gpu<<<num_blocks, THREADS_PER_BLOCK>>>(device_a, device_b, device_c, N);
         double end_time = get_time();
         gpu_time += (end_time - start_time);
     }
