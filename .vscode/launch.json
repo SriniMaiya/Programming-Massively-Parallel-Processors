@@ -8,7 +8,7 @@
             "name": "CUDA C++: Launch",
             "type": "cuda-gdb",
             "request": "launch",
-            "program": "${workspaceFolder}/2_CUDA_BASICS/3_Matmul/a.out"
+            "program": "${workspaceFolder}/cuBLAS/a.out",
         },
         {
             "name": "CUDA C++: Attach",
