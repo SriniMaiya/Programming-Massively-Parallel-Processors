@@ -45,7 +45,7 @@ void init_vector(int *vec, const int n)
 
 int main()
 {
-    int N = 1 << 15;
+    int N = 1 << 16;
     int bytes = N * sizeof(int);
     // host vetor and host vector result.
     int *h_v, *h_v_r;
@@ -65,7 +65,7 @@ int main()
     int threads_per_block = SIZE;
 
     // Grid size <=> number of threadblocks.
-    int num_blocks = (int)ceil(N / threads_per_block);
+    int num_blocks = (int)ceil((float)N / threads_per_block);
 
     // Call kernel.
     sum_reduction<<<num_blocks, threads_per_block>>>(d_v, d_v_r);
@@ -77,7 +77,7 @@ int main()
 
     printf("Accumulated result: %d\n", h_v_r[0]);
 
-    assert(h_v_r[0] == 1 << 15);
+    assert(h_v_r[0] == 1 << 16);
     printf("COMPILATION SUCCEEDED\n");
 
     return 0;

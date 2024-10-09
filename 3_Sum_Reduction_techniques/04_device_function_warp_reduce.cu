@@ -6,25 +6,37 @@
 #define SIZE 256
 #define SHMEM_SIZE SIZE * sizeof(int)
 
-__global__ void sum_reduction(int *vector, int *vector_result)
+__device__ void wrapReduce(int *shmem_pointer, int threadID)
+{
+    for (int i = warpSize; i > 0; i = i >> 1)
+    {
+        shmem_pointer[threadID] += shmem_pointer[threadID + i];
+    }
+}
+
+__global__ void sum_reduction(volatile int *vector, int *vector_result)
 {
     // shared memory block for partial sums
     __shared__ int partial_sum[SHMEM_SIZE];
 
-    // global thread ID
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    // get the global element from vector (vector[tid]) to the corresponding local index of the SHMEM block.
-    partial_sum[threadIdx.x] = vector[tid];
+    int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
+    // get the global element from vector (
+    partial_sum[threadIdx.x] = vector[i] + vector[i + blockDim.x];
     // wait for all the threads to fetch and store the data in the SHMEM block.
     __syncthreads();
 
-    for (int i = 1; i < blockDim.x; i *= 2)
+    for (int i = blockDim.x / 2; i > 32; i = i >> 1)
     {
-        if (threadIdx.x % (i * 2) == 0)
+        if (threadIdx.x < i)
         {
             partial_sum[threadIdx.x] += partial_sum[threadIdx.x + i];
         }
         __syncthreads();
+    }
+
+    if (threadIdx.x < warpSize)
+    {
+        wrapReduce(partial_sum, threadIdx.x);
     }
 
     if (threadIdx.x == 0)
@@ -63,7 +75,7 @@ int main()
     int threads_per_block = SIZE;
 
     // Grid size <=> number of threadblocks.
-    int num_blocks = (int)ceil((float)N / threads_per_block);
+    int num_blocks = (int)ceil((float)((float)N / threads_per_block) / 2);
 
     // Call kernel.
     sum_reduction<<<num_blocks, threads_per_block>>>(d_v, d_v_r);

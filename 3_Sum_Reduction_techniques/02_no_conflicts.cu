@@ -18,9 +18,9 @@ __global__ void sum_reduction(int *vector, int *vector_result)
     // wait for all the threads to fetch and store the data in the SHMEM block.
     __syncthreads();
 
-    for (int i = 1; i < blockDim.x; i *= 2)
+    for (int i = blockDim.x / 2; i > 0; i = i >> 1)
     {
-        if (threadIdx.x % (i * 2) == 0)
+        if (threadIdx.x < i)
         {
             partial_sum[threadIdx.x] += partial_sum[threadIdx.x + i];
         }
