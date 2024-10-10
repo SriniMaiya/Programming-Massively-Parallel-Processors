@@ -72,6 +72,7 @@ int main()
 
     // reduce to scalar.
     sum_reduction<<<1, threads_per_block>>>(d_v_r, d_v_r);
+    cudaDeviceSynchronize();
 
     cudaMemcpy(h_v_r, d_v_r, bytes, cudaMemcpyDeviceToHost);
 

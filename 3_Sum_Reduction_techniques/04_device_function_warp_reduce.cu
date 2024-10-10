@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
-#include <cuda_runtime.h>
 
 #define SIZE 256
 #define SHMEM_SIZE SIZE * sizeof(int)
