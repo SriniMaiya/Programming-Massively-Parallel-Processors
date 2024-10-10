@@ -1,0 +1,25 @@
+==35174== NVPROF is profiling process 35174, command: ./00_naive
+==35174== Profiling application: ./00_naive
+==35174== Profiling result:
+"Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
+,%,ms,,ms,ms,ms,
+"GPU activities",100.000000,2.392212,1,2.392212,2.392212,2.392212,"conv1D(int const *, int const *, int*, int, int)"
+"API calls",95.478946,133.026302,3,44.342100,0.016968,132.991206,"cudaMallocManaged"
+"API calls",2.386845,3.325479,114,0.029170,0.000062,1.823838,"cuDeviceGetAttribute"
+"API calls",1.718847,2.394788,1,2.394788,2.394788,2.394788,"cudaDeviceSynchronize"
+"API calls",0.289495,0.403340,3,0.134446,0.052926,0.187787,"cudaFree"
+"API calls",0.107955,0.150409,1,0.150409,0.150409,0.150409,"cudaLaunchKernel"
+"API calls",0.012063,0.016807,1,0.016807,0.016807,0.016807,"cuDeviceGetName"
+"API calls",0.004083,0.005689,1,0.005689,0.005689,0.005689,"cuDeviceGetPCIBusId"
+"API calls",0.000756,0.001053,2,0.000526,0.000066,0.000987,"cuDeviceGet"
+"API calls",0.000576,0.000803,3,0.000267,0.000094,0.000415,"cuDeviceGetCount"
+"API calls",0.000166,0.000231,1,0.000231,0.000231,0.000231,"cuModuleGetLoadingMode"
+"API calls",0.000155,0.000216,1,0.000216,0.000216,0.000216,"cuDeviceTotalMem"
+"API calls",0.000112,0.000156,1,0.000156,0.000156,0.000156,"cuDeviceGetUuid"
+
+==35174== Unified Memory profiling result:
+"Device","Count","Avg Size","Min Size","Max Size","Total Size","Total Time",""
+"NVIDIA GeForce GTX 1650 (0)",37,112.431641KB,4.000000KB,0.984375MB,4.062500MB,788.039000us,"Host To Device"
+"NVIDIA GeForce GTX 1650 (0)",50,165.119141KB,4.000000KB,0.996094MB,8.062500MB,1.446442ms,"Device To Host"
+"NVIDIA GeForce GTX 1650 (0)",,,,,24B,2.566421ms,"Gpu page fault groups"
+Total CPU Page faults: 38
