@@ -7,6 +7,10 @@
 __global__ void vectorAddUM(const int *a, const int *b, int *c, const size_t N)
 {
     int thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (thread_id < 10)
+    {
+        printf("gridDim.x: %d, blockDim.x: %d\n", gridDim.x, blockDim.x);
+    }
 
     if (thread_id < N)
     {
@@ -55,8 +59,9 @@ int main()
 
     int THREADS_PER_BLOCK = 256;
 
-    int GRID_SIZE = (int)ceil(N / THREADS_PER_BLOCK);
-    // int GRID_SIZE = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    // int GRID_SIZE = (int)ceil((float)N / THREADS_PER_BLOCK);
+    int GRID_SIZE = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    printf("GRID_SIZE: %d, NUM_THREADS: %d\n\n", GRID_SIZE, THREADS_PER_BLOCK);
 
     vectorAddUM<<<GRID_SIZE, THREADS_PER_BLOCK>>>(a, b, c, N);
 

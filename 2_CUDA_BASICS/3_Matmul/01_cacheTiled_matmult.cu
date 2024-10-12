@@ -26,6 +26,7 @@ const int SHMEM_SIZE = 16 * 16 * sizeof(int);
 
 __global__ void matrixMul(const int *a, const int *b, int *c)
 {
+
     int row = blockDim.y * blockIdx.y + threadIdx.y;
     int col = blockDim.x * blockIdx.x + threadIdx.x;
 

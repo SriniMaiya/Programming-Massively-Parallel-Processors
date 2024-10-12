@@ -56,7 +56,7 @@ int main()
 
     int THREADS_PER_BLOCK = 256;
 
-    int GRID_SIZE = (int)ceil(N / THREADS_PER_BLOCK);
+    int GRID_SIZE = (int)ceil((float)N / THREADS_PER_BLOCK);
     // int GRID_SIZE = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
     // Prefetch the vectors a and b from CPU and asynchronously copy to GPU.
