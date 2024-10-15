@@ -1,4 +1,6 @@
 #include <math.h>
+#include <cassert>
+#include <stdio.h>
 
 __global__ void vecAddKernel(float *A, float *B, float *C, int n)
 {
@@ -34,6 +36,37 @@ void vecAdd(float *A, float *B, float *C, int n)
     cudaFree(C_d);
 }
 
+void init_vector(float *vec, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        vec[i] = (float)(rand() % RAND_MAX) / RAND_MAX;
+    }
+}
+
+void check_results(float *A, float *B, float *C, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        assert(C[i] = A[i] + B[i]);
+    }
+    printf("COMPLETED SUCCESSFULLY\n");
+}
+
 int main()
 {
+    float *A, *B, *C;
+    int n = 1 < 10;
+    int bytes = n * sizeof(float);
+
+    A = (float *)malloc(bytes);
+    B = (float *)malloc(bytes);
+    C = (float *)malloc(bytes);
+
+    init_vector(A, n);
+    init_vector(B, n);
+
+    vecAdd(A, B, C, n);
+
+    check_results(A, B, C, n);
 }
