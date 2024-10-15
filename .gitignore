@@ -1,0 +1,18 @@
+# Ignore all
+*
+# Unignore files with extensions => Ignoring binaries
+!*.*
+# Unignore folders
+!*/
+# Ignore .out files
+**/**.out
+
+# Ignore latex_document folder
+**/latex_document/**
+# Unignore needed files
+!**/latex_document/**.tex
+
+!**/latex_document/Images/
+!**/latex_document/Images/**/*
+
+!**/latex_document/**.pdf
