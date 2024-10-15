@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "random": "c",
+        "stdio.h": "c",
+        "iostream": "cpp",
+        "cmath": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/usr/local/cuda-12.6/bin/nvcc",
+    "rainbow_csv.enable_tooltip": true,
+    "editor.formatOnSave": true,
+    "terminal.integrated.cwd": "${fileDirname}"
+}
