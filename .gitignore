@@ -7,8 +7,9 @@
 # Ignore .out files
 **/**.out
 
-# Ignore latex_document folder
+# Ignore latex_document and to_check folders
 **/latex_document/**
+**/to_check/*
 # Unignore needed files
 !**/latex_document/**.tex
 
