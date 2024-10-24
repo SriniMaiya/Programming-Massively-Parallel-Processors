@@ -138,7 +138,7 @@ int main()
     for (int i = 0; i < RUNS; i++)
     {
         double start_time = get_time();
-        matmul_gpu<<<blockDim, gridDim>>>(d_a, d_b, d_c, M, N, K);
+        matmul_gpu<<<gridDim, blockDim>>>(d_a, d_b, d_c, M, N, K);
         double end_time = get_time();
         gpu_time += (end_time - start_time);
     }
