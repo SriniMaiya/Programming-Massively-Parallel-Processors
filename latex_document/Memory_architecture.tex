@@ -15,7 +15,7 @@
           \end{itemize}
     \item \textbf{Local memory}:
           \begin{itemize}
-              \item Resides in the global memory, but is not shared across threads. Each thread has its own private local memory, where places the data that is private to the thread but cannot be allocated in the registers. This data includes statically allocated arrays, spilled registers, and other elements of the thread’s call stack.
+              \item Resides in the global memory, but is not shared across threads. Each thread has its own private local memory, where places the data that is private to the thread but cannot be allocated in the registers. This data includes statically allocated arrays, spilled registers, and other elements of the thread's call stack.
           \end{itemize}
     \item  \textbf{Registers and Shared memory}:
           \begin{itemize}
@@ -35,7 +35,7 @@
     \subsubsection{CPU vs GPU Register architecture}
     \begin{itemize}
         \item When CPUs context switch between different threads, they save the registers of the outgoing thread to memory and restore the registers of the incoming thread from memory.
-        \item In contrast, GPUs achieve zero-overhead scheduling by keeping the registers of all the threads that are scheduled on the processing block in the processing block’s register file.
+        \item In contrast, GPUs achieve zero-overhead scheduling by keeping the registers of all the threads that are scheduled on the processing block in the processing block's register file.
         \item This way, switching between warps of threads is instantaneous because the registers of the incoming threads are already in the register file. Consequently, GPU register files need to be substantially larger than CPU register files
     \end{itemize}
 \end{tcolorbox}
@@ -86,19 +86,136 @@
 \section{- Declaring program variables into the various memory types}
 \begin{center}
     \begin{tabular}{c|c|c|c}
-        Variable declaration                          & Memory   & Scope    & Lifetime    \\
+        Variable declaration                          & Memory   & Scope  & Lifetime    \\
         \hline
-        Automatic variables other than arrays         & Register & Register & Grid        \\
-        Automatic array variables                     & Local    & Local    & Grid        \\
-        \_\_device\_\_ \_\_shared\_\_ int SharedVar;  & Shared   & Shared   & Grid        \\
-        \_\_device\_\_ int GlobalVar;                 & Global   & Global   & Application \\
-        \_\_device\_\_ \_\_constant\_\_ int ConstVar; & Constan  & Constan  & Application \\
+        Automatic variables other than arrays         & Register & Thread & Grid        \\
+        Automatic array variables                     & Local    & Thread & Grid        \\
+        \_\_device\_\_ \_\_shared\_\_ int SharedVar;  & Shared   & Block  & Grid        \\
+        \_\_device\_\_ int GlobalVar;                 & Global   & Grid   & Application \\
+        \_\_device\_\_ \_\_constant\_\_ int ConstVar; & Constant & Grid   & Application \\
     \end{tabular}
 \end{center}
-\begin{itemize}
-    \item If a variable’s scope is a single thread, a private version of the variable will be created for every thread; each thread can access only its private version of the variable.
-    \item Lifetime tells the portion of the program’s execution duration when the variable is available for use: either within a grid’s execution or throughout the entire application.
-    \item If a \textbf{variable’s lifetime is within a grid’s execution, it must be declared within the kernel function body and will be available for use only by the kernel’s code}. If the kernel is invoked several times, the value of the variable is not maintained across these invocations. Each invocation must initialize the variable in order to use it.
-    \item If a variable’s lifetime is throughout the entire application, it must be declared outside of any function body. The contents of these variables are maintained throughout the execution of the application and available to all kernels.
+\begin{enumerate}
+    \item If a variable's scope is a single thread, a private version of the variable will be created for every thread; each thread can access only its private version of the variable.
+    \item Lifetime tells the portion of the program's execution duration when the variable is available for use: either within a grid's execution or throughout the entire application.
+    \item If a \textbf{variable's lifetime is within a grid's execution, it must be declared within the kernel function body and will be available for use only by the kernel's code}. If the kernel is invoked several times, the value of the variable is not maintained across these invocations. Each invocation must initialize the variable in order to use it.
+    \item If a variable's lifetime is throughout the entire application, it must be declared outside of any function body. The contents of these variables are maintained throughout the execution of the application and available to all kernels.
     \item Variables that are not arrays are \textsl{scalar} variables. \textbf{All automatic scalar variables that are declared in kernel and device functions are placed into registers.} The scopes of these automatic variables are within individual threads. When a \textbf{kernel function declares an automatic variable, a private copy of that variable is generated for every thread that executes the kernel function. When a thread terminates, all its automatic variables cease to exist.}
-\end{itemize}
+    \item Automatic array variables are not stored in registers. They are stored in thread's local memory and may incur access delays. A private version of each automatic array is created for and used for every thread. Once a thread terminates its execution, the contents of its automatic array variables cease to exist.
+    \item If a variable declaration is preceded by \texttt{\_\_shared\_\_} keyword, it is declared as a shared variable in CUDA. Such a declaration is typically made within a kernel function or a device function.
+          \begin{itemize}
+              \item \textbf{Shared variables reside in the shared memory. The scope of a shared variable is within a thread block}; that is, all threads in a block see the same version of a shared variable.
+              \item \textbf{A private version of the shared variable is created for and used by each block during kernel execution. The lifetime of a shared variable is within the duration of the kernel execution.} When a kernel terminates its grid's execution, the contents of its shared variables cease to exist.
+              \item Accessing shared variables from the shared memory is extremely fast and highly parallel. CUDA programmers often use shared variables to hold the portion of global memory data that is frequently used and reused in an execution phase of the kernel.
+          \end{itemize}
+    \item If a variable declaration is preceded by the \texttt{\_\_constant\_\_} keyword, then the variable is declared as a constant in CUDA.\textbf{ Declaration of constant variables must be outside any function body}.
+          \begin{itemize}
+              \item The scope of a constant variable is all grids, meaning that all threads in all grids see the same version of a constant variable. The lifetime of a constant variable is the entire application execution.
+              \item Constant variables are \textbf{stored in the global memory but are cached for efficient access}. Currently, the total size of constant variables in an application is limited to 65,536 bytes.
+          \end{itemize}
+    \item If a variable declaration is preceded by the \texttt{\_\_device\_\_} keyword, \textbf{the global variable is placed in the global memory.}
+          \begin{itemize}
+              \item Accesses to the global variable are slow.
+              \item One important advantage of global variables is that they are visible to all threads of all kernels. Their contents also persist through the entire execution.
+              \item Thus, global variables can be used as a means for threads to collaborate across blocks.
+              \item \textsl{There is currently no easy way to synchronize between threads from different thread blocks or to ensure data consistency across threads in accessing global memory other than using atomic operations or terminating the current kernel execution.}
+              \item \textbf{Therefore, global variables are often used to pass information from one kernel invocation to another kernel invocation.}
+          \end{itemize}
+    \item In CUDA, pointers can be used to point to data objects in the global memory.
+          \begin{itemize}
+              \item If an object is allocated by a host function, the pointer to the object is initialized by memory allocation API functions such as \texttt{cudaMalloc} and \texttt{cudaMemCpy} functions and can be passed to the kernel function as a parameter.
+              \item Assign the address of a  variable is declared in the global memory to a pointer variable in a kernel function.\\
+                    \texttt{float* ptr = \&GlobalVar;}, where \texttt{float *ptr} is an automatic pointer variable which points to the global variable.
+          \end{itemize}
+\end{enumerate}
+
+\pagebreak
+\section{Q \& A}
+\begin{enumerate}
+    \item Consider matrix addition. Can one use shared memory to reduce the global memory bandwidth consumption? Hint: Analyze the elements that are accessed by each thread and see whether there is any commonality between threads.
+          \\ \textsl{A:} No, the use of shared memory has no effect here. There is no commonality between the elements accessed by any two or more given threads.
+    \item What type of incorrect execution behavior can happen if one forgot to use one or both \texttt{\_\_syncthreads()} in the kernel?
+          \begin{center}
+              \includegraphics[width=0.9\linewidth]{Images/Memories/tiled_kernel.png}
+          \end{center}
+          \textsl{A:} If the \texttt{\_\_syncthreads()} in \texttt{line 21} is not used, the loading of elements from global memory into the shared memory \texttt{Mds} and \texttt{Nds} is not synchronized/ensured for the entire block. This would in turn pass wrong and incomplete values of \texttt{Mds} and \texttt{Nds} during the calculation of \texttt{Pvalue} in \texttt{line 24}.\\
+          If the \texttt{\_\_syncthreads()} in \texttt{line 26} is not used, the threads that write might get ahead of the other thread and write false values into the output matrix \texttt{P}.
+    \item Assuming that capacity is not an issue for registers or shared memory, give one important reason why it would be valuable to use shared memory instead of registers to hold values fetched from global memory? Explain your answer.
+          \\\textsl{A:} The values stored in the shared memories can be accessed by all the threads in the block. By loading the values from the global memory into shared memory, the loaded data can be reused by multiple threads with single variable/memory fetch.\\ If the data is directly loaded into registers directly, the data is restricted to a thread. If the same values are required by multiple threads, then they need to be loaded so many times, once per each thread.
+
+    \item For our tiled matrix-matrix multiplication kernel, if we use a 32 3 32 tile, what is the reduction of memory bandwidth usage for input matrices M and N?
+          \\\textsl{A:} 32$\times$ reduction.
+    \item Assume that a CUDA kernel is launched with 1000 thread blocks, each of which has 512 threads. If a variable is declared as a local variable in the kernel, how many versions of the variable will be created through the lifetime of the execution of the kernel?
+          \\\textsl{A:} 512,000 instances. 1 instance of the variable per thread.
+    \item In the previous question, if a variable is declared as a shared memory variable, how many versions of the variable will be created through the lifetime of the execution of the kernel?
+          \\\textsl{A:} 1,000 instances. 1 per thread block.
+    \item Consider performing a matrix multiplication of two input matrices with dimensions N$\times$N. How many times is each element in the input matrices requested from global memory when:
+          \begin{itemize}
+              \item a. There is no tiling?
+                    \\ \textsl{A:} N times.
+              \item b. Tiles of size T$\times$T are used?
+                    \\ \textsl{A: } N / T times.
+          \end{itemize}
+
+    \item A kernel performs 36 floating-point operations and seven 32-bit global memory accesses per thread. For each of the following device properties, indicate whether this kernel is compute-bound or memory-bound.
+          \begin{itemize}
+              \item[ a.] Peak FLOPS=200 GFLOPS, peak memory bandwidth=100 GB/second
+                    \\ \textsl{A:}
+                    \begin{equation*}
+                        \begin{aligned}
+                            \text{computational intensity}         & = \frac{\text{Floating point operations} }{\text{Num. Memory accesses} \times  \text{\text{size of access(bytes)}}} \\
+                                                                   & = \frac{36}{7\times4}                                                                                               \\
+                                                                   & = 1.286 \text{ FLOP/Byte}                                                                                           \\\\
+                            \text{memory bandwidth limit}          & = \text{peak memory bandwidth}                 \times \text{computational intensity}                                \\
+                                                                   & = 100 \times 1.286 = \textbf{128.6 GFLOPS.}                                                                         \\\\
+                            \text{ 128.6 (memory bandwidth limit)} & > \text{100 (peak memory bandwidth)}                                                                                \\
+                            \implies                               & \textbf{The kernel is memory bound.}                                                                                \\
+                        \end{aligned}
+                    \end{equation*}
+              \item[ b.] Peak FLOPS=300 GFLOPS, peak memory bandwidth=250 GB/second
+                    \\ \textsl{A: }
+                    \begin{equation*}
+                        \begin{aligned}
+                            \text{computational intensity}        & = 1.286 \text{ FLOP/Byte}                          \\
+                            \text{memory bandwidth limit}         & = 250 \times 1.286 = \textbf{321.5 \text{ GFLOPS}} \\\\
+                            321.5 (\text{memory bandwidth limit}) & > 300 (\text{Peak FLOPS})                          \\
+                            \implies                              & \textbf{The kernel is compute bound.}              \\
+                        \end{aligned}
+                    \end{equation*}
+          \end{itemize}
+          \pagebreak
+    \item To manipulate tiles, a new CUDA programmer has written a device kernel that will transpose each tile in a matrix. The tiles are of size BLOCK\_WIDTH by BLOCK\_WIDTH, and each of the dimensions of matrix A is known to be a multiple of BLOCK\_WIDTH. The kernel invocation and code are shown below. BLOCK\_WIDTH is known at compile time and could be set anywhere from 1 to 20.
+          \begin{center}
+              \includegraphics[width=0.9\linewidth]{Images/Memories/blocktranspose.png}
+          \end{center}
+          \begin{itemize}
+              \item[a.] Out of the possible range of values for BLOCK\_SIZE, for what values of BLOCK\_SIZE will this kernel function execute correctly on the device?
+                    \\ \textsl{A: }
+                    \\\textbf{ After loading the elements of \texttt{A\_elements} into the shared memory \texttt{blockA}, there is no barrier function such as \texttt{\_\_syncthreads()} to ensure the completion of write operations of all the threads into the shared memory.}
+              \item[b.] If the code does not execute correctly for all BLOCK\_SIZE values, what is the root cause of this incorrect execution behavior? Suggest a fix to the code to make it work for all BLOCK\_SIZE values.
+                    \\\textsl{A:} Placement of \texttt{\_\_syncthreads()} directly after line 10.
+          \end{itemize}
+    \item Consider the following CUDA kernel and the corresponding host function that calls it:
+          \begin{center}
+              \includegraphics[width=0.8\linewidth]{Images/Memories/foo_kernel.png}
+          \end{center}
+          \begin{itemize}
+              \item[a.] How many versions of the variable \texttt{i} are there?
+                    \\\textsl{A:} \textbf{Automatic variable.} Each thread has a unique \texttt{i} \(\implies\) \textbf{1024 versions.}
+              \item[b.] How many versions of the array \texttt{x[]} are there?
+                    \\\textsl{A:} \textbf{Automatic variable.} Each thread has a unique \texttt{x[]} \(\implies\) \textbf{1024 versions.}
+              \item[c.] How many versions of the variable \texttt{y\_s} are there?
+                    \\\textsl{A:} \textbf{Shared variable}. Each block has a unique \texttt{y\_s} \(\implies\) (1024 + 128 - 1) / 128 = \textbf{8 versions}
+              \item[d.] How many versions of the array \texttt{b\_s[]} are there?
+                    \\\textsl{A:} \textbf{Shared variable}. Each block has a unique \texttt{y\_s} \(\implies\) (1024 + 128 - 1) / 128 = \textbf{8 versions}
+              \item [e.] What is the amount of shared memory used per block (in bytes)?
+                    \\\textsl{A:} \texttt{\_\_shared\_\_ float y\_s} uses 4 bytes + \texttt{\_\_shared\_\_ float b\_s[128]} uses 4 \(times\) 128 bytes of shared memory. (4: \texttt{sizeof(float)}) $\implies$ 516 bytes.
+              \item [f.] What is the floating-point to global memory access ratio of the kernel (in OP/B)?
+                    \\\textsl{A:}
+                    \begin{equation*}
+                        \begin{aligned}
+                            \text{FLOPs per thread} & =
+                        \end{aligned}
+                    \end{equation*}
+          \end{itemize}
+\end{enumerate}

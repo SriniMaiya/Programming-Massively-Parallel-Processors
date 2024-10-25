@@ -1,2 +1,11 @@
 CUDA
 SMs
+syncthreads
+SIMD
+threadIdx
+von
+Neuman
+reconverge
+syncwarp
+cudaMalloc
+cudaMemCpy

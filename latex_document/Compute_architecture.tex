@@ -306,7 +306,7 @@ For example, the Ampere A100 GPU allows a maximum of 65,636 registers per SM. To
                     \\A: Number of warps: (2048 threads) / (32 threads per warp) = 64 warps. 63 warps cover the entire vector of 2000 elements. (63 * 32 = 2016 threads.) $\implies$ As 62 * 32 = 1984 $<$ 2000, the last (\(63^{rd}\)) warp will have divergence. \textbf{One warp with divergence.}
 
               \item Consider a hypothetical block with 8 threads executing a section of code before reaching a barrier. The threads require the following amount of time (in microseconds) to execute the sections: 2.0, 2.3, 3.0, 2.8, 2.4, 1.9, 2.6, and
-                    2.9; they spend the rest of their time waiting for the barrier. What percentage of the threads’ total execution time is spent waiting for the barrier?
+                    2.9; they spend the rest of their time waiting for the barrier. What percentage of the threads' total execution time is spent waiting for the barrier?
                     \\A: The maximum time required is 3.0 \(\mu\)s.\\
                     \begin{equation*}
                         \begin{aligned}
@@ -316,7 +316,7 @@ For example, the Ampere A100 GPU allows a maximum of 65,636 registers per SM. To
                     \end{equation*}
               \item A CUDA programmer says that if they launch a kernel with only 32 threads in each block, they can leave out the \texttt{\_\_syncthreads()} instruction wherever barrier synchronization is needed. Do you think this is a good idea? Explain.
                     \\A: Launching the kernel with 32 threads per block does not promise the timely execution of all the threads like the barrier synchronization does. Assuming and tweaking the block, warp size does not ensure the correctness of the execution when the execution happens in phases.
-              \item If a CUDA device’s SM can take up to 1536 threads and up to 4 thread blocks, which of the following block configurations would result in the most number of threads in the SM?
+              \item If a CUDA device's SM can take up to 1536 threads and up to 4 thread blocks, which of the following block configurations would result in the most number of threads in the SM?
                     \begin{itemize}
                         \item[a.] \textsl{128 threads per block}
                         \item[b.] \textsl{256 threads per block}

@@ -59,7 +59,7 @@ int main()
     */
     float *host_a, *host_b, *host_c_cpu, *host_c_gpu;
     float *device_a, *device_b, *device_c;
-    size_t size_vec = N * sizeof(float); // Size of the whole vector.
+    size_t size_vec = Width_N * sizeof(float); // Size of the whole vector.
 
     // Cast allocated memory to float*
     host_a = (float *)malloc(size_vec);
@@ -70,8 +70,8 @@ int main()
     srand(time(NULL));
 
     // Initialize vectors a, b on cpu.
-    init_vector(host_a, N);
-    init_vector(host_b, N);
+    init_vector(host_a, Width_N);
+    init_vector(host_b, Width_N);
 
     // Allocate CUDA memory.
     printf("Allocating CUDA memory....\n");
@@ -84,13 +84,13 @@ int main()
     cudaMemcpy(device_b, host_b, size_vec, cudaMemcpyHostToDevice);
 
     // Always keeps 1 additional block during the  (N/THREADS_PER_BLOCK) division with remainder.
-    int num_blocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    int num_blocks = (Width_N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
     printf("Performing warm-up runs.....\n");
     for (int i = 0; i < 3; i++)
     {
-        vector_add_cpu(host_a, host_b, host_c_cpu, N);
-        vector_add_gpu<<<num_blocks, THREADS_PER_BLOCK>>>(device_a, device_b, device_c, N);
+        vector_add_cpu(host_a, host_b, host_c_cpu, Width_N);
+        vector_add_gpu<<<num_blocks, THREADS_PER_BLOCK>>>(device_a, device_b, device_c, Width_N);
         cudaDeviceSynchronize();
     }
 
@@ -99,7 +99,7 @@ int main()
     for (int i = 0; i < RUNS; i++)
     {
         double start_time = get_time();
-        vector_add_cpu(host_a, host_b, host_c_cpu, N);
+        vector_add_cpu(host_a, host_b, host_c_cpu, Width_N);
         double end_time = get_time();
         cpu_time += (end_time - start_time);
     }
@@ -110,7 +110,7 @@ int main()
     for (int i = 0; i < RUNS; i++)
     {
         double start_time = get_time();
-        vector_add_gpu<<<num_blocks, THREADS_PER_BLOCK>>>(device_a, device_b, device_c, N);
+        vector_add_gpu<<<num_blocks, THREADS_PER_BLOCK>>>(device_a, device_b, device_c, Width_N);
         double end_time = get_time();
         gpu_time += (end_time - start_time);
     }
@@ -123,7 +123,7 @@ int main()
     // Verify is both CPU and GPU operations yield the same result.
     cudaMemcpy(host_c_gpu, device_c, size_vec, cudaMemcpyDeviceToHost);
     bool correct = true;
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < Width_N; i++)
     {
         if (fabs(host_c_cpu[i] - host_c_gpu[i]) > 1e-5)
         {

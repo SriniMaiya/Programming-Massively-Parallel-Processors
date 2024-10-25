@@ -68,7 +68,7 @@ int main()
     float *h_a, *h_b, *h_c_gpu1D, *h_c_gpu3D, *h_c_cpu;
     float *d_a, *d_b, *d_c;
 
-    size_t size_vec = N * sizeof(float);
+    size_t size_vec = Width_N * sizeof(float);
 
     h_a = (float *)malloc(size_vec);
     h_b = (float *)malloc(size_vec);
@@ -77,8 +77,8 @@ int main()
     h_c_gpu3D = (float *)malloc(size_vec);
 
     srand(42);
-    init_vector(h_a, N);
-    init_vector(h_b, N);
+    init_vector(h_a, Width_N);
+    init_vector(h_b, Width_N);
 
     cudaMalloc(&d_a, size_vec);
     cudaMalloc(&d_b, size_vec);
@@ -87,7 +87,7 @@ int main()
     cudaMemcpy(d_a, h_a, size_vec, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, h_b, size_vec, cudaMemcpyHostToDevice);
 
-    int num_blocks_1d = (N + BLOCK_SIZE_1D - 1) / BLOCK_SIZE_1D;
+    int num_blocks_1d = (Width_N + BLOCK_SIZE_1D - 1) / BLOCK_SIZE_1D;
     dim3 block_size3d(BLOCK_SIZE_3D_X, BLOCK_SIZE_3D_Y, BLOCK_SIZE_3D_Z);
     dim3 num_blocks_3d(
         (Nx + block_size3d.x - 1) / block_size3d.x,
@@ -98,8 +98,8 @@ int main()
 
     for (int i = 0; i < 3; i++)
     {
-        vector_add_cpu(h_a, h_b, h_c_cpu, N);
-        vector_add_gpu_1d<<<num_blocks_1d, BLOCK_SIZE_1D>>>(d_a, d_b, d_c, N);
+        vector_add_cpu(h_a, h_b, h_c_cpu, Width_N);
+        vector_add_gpu_1d<<<num_blocks_1d, BLOCK_SIZE_1D>>>(d_a, d_b, d_c, Width_N);
         vector_add_gpu_3d<<<num_blocks_3d, block_size3d>>>(d_a, d_b, d_c, Nx, Ny, Nz);
         cudaDeviceSynchronize();
     }
@@ -110,7 +110,7 @@ int main()
     for (int i = 0; i < RUNS; i++)
     {
         double start_time = get_time();
-        vector_add_cpu(h_a, h_b, h_c_cpu, N);
+        vector_add_cpu(h_a, h_b, h_c_cpu, Width_N);
         double end_time = get_time();
         cpu_time += (end_time - start_time);
         printf(".");
@@ -124,7 +124,7 @@ int main()
     for (int i = 0; i < RUNS; i++)
     {
         double start_time = get_time();
-        vector_add_gpu_1d<<<num_blocks_1d, BLOCK_SIZE_1D>>>(d_a, d_b, d_c, N);
+        vector_add_gpu_1d<<<num_blocks_1d, BLOCK_SIZE_1D>>>(d_a, d_b, d_c, Width_N);
         double end_time = get_time();
         gpu_time_1d += (end_time - start_time);
         printf(".");
@@ -154,7 +154,7 @@ int main()
     printf("%10s %.4f milliseconds\n", "GPU-3D: ", avg_gpu3d_time);
 
     bool correct = true;
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < Width_N; i++)
     {
         if ((fabs(h_c_cpu[i] - h_c_gpu1D[i]) > 1e-5) || (fabs(h_c_gpu1D[i] - h_c_gpu3D[i])) > 1e-5)
         {

@@ -14,11 +14,11 @@ void init_array(int *array, int n)
 
 int main()
 {
-    int bytes = N * sizeof(int);
+    int bytes = Width_N * sizeof(int);
 
     int *array = (int *)malloc(bytes);
 
-    init_array(array, N);
+    init_array(array, Width_N);
 
     // ::: Simulating :::
     // thread index: 0, 1, 2,...63
@@ -28,7 +28,7 @@ int main()
                                                                     // In CUDA CPP the threads are created dynamically.
     {
         printf("THREAD INDEX: %d", thread_index);
-        for (int i = thread_index; i < N / 4; i += BOTTLENECK)
+        for (int i = thread_index; i < Width_N / 4; i += BOTTLENECK)
         {
             int4 *int4_array = (int4 *)array;
             int4 indexed_element = int4_array[i];
