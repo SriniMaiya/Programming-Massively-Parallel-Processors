@@ -1,0 +1,1 @@
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q\\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q max blocks/SM \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\QOccupancy of blocks% \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q registers occupied \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Qmax registers/SM \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\QOccupancy of registers% \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q [b.]\\E$"}
