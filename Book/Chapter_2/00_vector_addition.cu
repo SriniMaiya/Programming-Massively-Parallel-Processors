@@ -56,7 +56,7 @@ void check_results(float *A, float *B, float *C, int n)
 int main()
 {
     float *A, *B, *C;
-    int n = 1 < 10;
+    int n = 1 < 20;
     int bytes = n * sizeof(float);
 
     A = (float *)malloc(bytes);
